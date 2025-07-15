@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Выбери лучший домик!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    .house-pair {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+    img {
+      width: 300px;
+      height: auto;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    img:hover {
+      transform: scale(1.05);
+    }
+    .start-screen, .end-screen {
+      font-size: 22px;
+      margin-top: 40px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #ff7f50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #ff5722;
+    }
+    input {
+      font-size: 18px;
+      padding: 8px;
+      margin: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+<div id="game"></div>
+
+<script>
+const images = [
+  "images/House_01.jpeg",
+  "images/House_02.jpeg",
+  "images/House_03.jpeg",
+  "images/House_04.jpeg",
+  "images/House_05.jpeg",
+  "images/House_06.jpeg",
+  "images/House_07.jpeg",
+  "images/House_08.jpeg",
+  "images/House_09.jpeg",
+  "images/House_10.jpeg",
+  "images/House_11.jpeg",
+  "images/House_12.jpeg",
+  "images/House_13.jpeg",
+  "images/House_14.jpeg",
+  "images/House_15.jpeg",
+  "images/House_16.jpeg",
+  "images/House_17.jpeg",
+  "images/House_18.jpeg",
+  "images/House_19.jpeg",
+  "images/House_20.jpeg",
+  "images/House_21.jpeg",
+  "images/House_22.jpeg",
+  "images/House_23.jpeg",
+  "images/House_24.jpeg",
+  "images/House_25.jpeg",
+  "images/House_26.jpeg",
+  "images/House_27.jpeg",
+  "images/House_28.jpeg",
+  "images/House_29.jpeg",
+  "images/House_30.jpeg"
+];
+
+let round = [];
+let nextRound = [];
+let current = 0;
+let scoreMap = {};
+let name = "";
+let age = "";
+
+const gameDiv = document.getElementById("game");
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+function showStartScreen() {
+  gameDiv.innerHTML = `
+    <div class="start-screen">
+      <h1>🏡 Привет! Давай выберем самый милый домик!</h1>
+      <p>Как тебя зовут?</p>
+      <input type="text" id="nameInput" placeholder="Имя"><br>
+      <p>Сколько тебе лет?</p>
+      <input type="number" id="ageInput" placeholder="Возраст"><br>
+      <button id="startBtn" disabled>Начать!</button>
+    </div>
+  `;
+
+  const nameInput = document.getElementById("nameInput");
+  const ageInput = document.getElementById("ageInput");
+  const startBtn = document.getElementById("startBtn");
+
+  function validate() {
+    startBtn.disabled = !(nameInput.value.trim() && ageInput.value.trim());
+  }
+
+  nameInput.addEventListener("input", validate);
+  ageInput.addEventListener("input", validate);
+
+  startBtn.addEventListener("click", () => {
+    name = nameInput.value.trim();
+    age = ageInput.value.trim();
+    startGame();
+  });
+}
+
+function startGame() {
+  shuffle(images);
+  round = [...images];
+  nextRound = [];
+  current = 0;
+  scoreMap = {};
+  images.forEach(img => scoreMap[img] = 0);
+  gameDiv.innerHTML = "";
+  showPair();
+}
+
+function showPair() {
+  if (round.length === 1) {
+    showEndScreen(round[0]);
+    return;
+  }
+  if (current >= round.length - 1) {
+    round = [...nextRound];
+    nextRound = [];
+    current = 0;
+  }
+  const house1 = round[current];
+  const house2 = round[current + 1];
+  gameDiv.innerHTML = `
+    <div class="house-pair">
+      <img src="${house1}" onclick="selectHouse(0)">
+      <img src="${house2}" onclick="selectHouse(1)">
+    </div>
+  `;
+}
+
+function selectHouse(choice) {
+  const selected = round[current + choice];
+  nextRound.push(selected);
+  scoreMap[selected]++;
+  current += 2;
+  showPair();
+}
+
+function showEndScreen(finalWinner) {
+  const scored = Object.entries(scoreMap);
+  scored.sort((a, b) => b[1] - a[1]);
+  const top3 = [finalWinner, ...scored.filter(e => e[0] !== finalWinner).map(e => e[0])].slice(0, 3);
+
+  gameDiv.innerHTML = `
+    <div class="end-screen">
+      <h1>🏆 Наш пьедестал победителей!</h1>
+      <div style="display: flex; justify-content: center; align-items: flex-end; gap: 20px; margin-top: 40px;">
+        <div style="text-align: center;">
+          <div style="font-size: 20px;">🥈 2 место</div>
+          <img src="${top3[1]}" style="width: 200px; border-radius: 12px;">
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 20px;">🥇 1 место</div>
+          <img src="${top3[0]}" style="width: 240px; border-radius: 12px; box-shadow: 0 0 20px gold;">
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 20px;">🥉 3 место</div>
+          <img src="${top3[2]}" style="width: 180px; border-radius: 12px;">
+        </div>
+      </div>
+      <p style="margin-top: 30px;">Спасибо за участие, ${name}! 🏠</p>
+    </div>
+  `;
+
+  // 🔔 Отправка результатов в Make webhook
+  fetch("https://hook.us2.make.com/fjndael6296skcvhk7gf84q2sepvbaoa", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: name,
+      age: age,
+      winners: top3
+    })
+  }).catch(e => console.warn("Ошибка отправки результата:", e));
+
+  confetti({
+    particleCount: 200,
+    spread: 100,
+    origin: { y: 0.6 }
+  });
+}
+
+showStartScreen();
+</script>
+
+</body>
+</html>
